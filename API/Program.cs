@@ -1,4 +1,5 @@
 using API.Contexts;
+using API.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,5 +29,19 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<StoreContext>();
+var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+try
+{
+	context.Database.Migrate();
+	DbInitializer.Init(context);
+}
+catch (Exception ex)
+{
+	logger.LogError(ex, "A problem occurred during migration process.");
+}
 
 app.Run();
